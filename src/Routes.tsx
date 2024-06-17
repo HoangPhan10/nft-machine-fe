@@ -1,3 +1,4 @@
+import MyNFT from "pages/MyNFT";
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 const NFTLandingPage = React.lazy(() => import("pages/NFTLandingPage"));
@@ -7,6 +8,9 @@ const ProjectRoutes = () => {
       <Router>
         <Routes>
           <Route path="/" element={<NFTLandingPage />} />
+        </Routes>
+        <Routes>
+          <Route path="/my-nft" element={<MyNFT />} />
         </Routes>
       </Router>
     </React.Suspense>

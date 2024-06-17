@@ -5,9 +5,18 @@ import ReactDOM from "react-dom";
 import App from "./App";
 import "./styles/index.css";
 import "./styles/tailwind.css";
+import { MetaMaskUIProvider } from "@metamask/sdk-react-ui";
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <MetaMaskUIProvider
+      sdkOptions={{
+        dappMetadata: {
+          name: "Demo UI React App",
+        },
+      }}
+    >
+      <App />
+    </MetaMaskUIProvider>
   </React.StrictMode>,
-  document.getElementById("root"),
+  document.getElementById("root")
 );

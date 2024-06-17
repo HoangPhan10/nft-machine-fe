@@ -2,20 +2,17 @@ import React, { useEffect, useState } from "react";
 
 import { MetaMaskButton } from "@metamask/sdk-react-ui";
 import { Modal } from "antd";
-import { Button, Img, Text } from "components";
+import { Img, Text } from "components";
 import CustomLoading from "components/Loading";
-import { getTimeDifference } from "constances";
+import { getConnectedAccountMetadata, getTimeDifference } from "constances";
 import * as typechain from "contracts-nft-at17";
 import { ethers } from "ethers";
 import { Link } from "react-router-dom";
 import "./index.scss";
 
 const machineContract = "0xA37A981e7929B07f72359b8b683E1a58effdB3A0";
-const erc20Contract = "0xaAcB63f49E862fd1c92924c29FEf4056D65fA6af";
-const minter = "0xF21FE935ACfaF90251AF790B107f87b684bC640A";
 
-const NFTLandingPagePage: React.FC = () => {
-  const [modal, contextHolder] = Modal.useModal();
+const MyNFT: React.FC = () => {
   const [listNft, setListNft] = useState([]);
   const [isRender, setIsRender] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,29 +21,17 @@ const NFTLandingPagePage: React.FC = () => {
     getNFTsList();
   }, [isRender]);
 
-  const countDown = () => {
-    let secondsToGo = 5;
-
-    const instance = modal.success({
-      title: "Message",
-      content: `You have successfully purchased the NFT`,
-      className: "nft-message",
-    });
-
-    const timer = setInterval(() => {
-      secondsToGo -= 1;
-      instance.update({
-        content: `You have successfully purchased the NFT`,
+  useEffect(() => {
+    getConnectedAccountMetadata()
+      .then((metadata) => {
+        getNFTsList(metadata.account);
+      })
+      .catch((error) => {
+        console.error("Error getting connected account metadata:", error);
       });
-    }, 1000);
+  }, []);
 
-    setTimeout(() => {
-      clearInterval(timer);
-      instance.destroy();
-    }, secondsToGo * 1000);
-  };
-
-  const getNFTsList = async () => {
+  const getNFTsList = async (account: string) => {
     try {
       const web3provider = new ethers.providers.Web3Provider(
         window.ethereum as any
@@ -59,7 +44,8 @@ const NFTLandingPagePage: React.FC = () => {
       let list = [];
       nftList.forEach(async (e) => {
         const ownerOf = await machine.ownerOf(e[0]);
-        if (ownerOf === minter) {
+        console.log(ownerOf,account.toUpperCase());
+        if (ownerOf.toUpperCase() === account.toUpperCase()) {
           const tokenId = e[0].toString();
           const price = e[1].toString();
           const uri = e[2].toString();
@@ -83,39 +69,10 @@ const NFTLandingPagePage: React.FC = () => {
       console.log(e);
     }
   };
-  const buyNTF = async (tokenId: any, price: any) => {
-    try {
-      const web3provider = new ethers.providers.Web3Provider(
-        window.ethereum as any
-      );
-      const machine = typechain.NFTMachine__factory.connect(
-        machineContract,
-        web3provider as any
-      );
-      const erc20 = typechain.MyERC20Token__factory.connect(
-        erc20Contract,
-        web3provider as any
-      );
-      setIsLoading(true);
-      const tx = await erc20
-        .connect(web3provider.getSigner() as any)
-        .approve(machine.target, price);
-      await web3provider.waitForTransaction(tx.hash);
-      const tx2 = await machine
-        .connect(web3provider.getSigner() as any)
-        .buyNFT(tokenId);
-      await web3provider.waitForTransaction(tx2.hash);
-      setIsLoading(false);
-      setIsRender(!isRender);
-      countDown();
-    } catch (e) {
-      setIsLoading(false);
-    }
-  };
+
   return (
     <>
       <CustomLoading show={isLoading} />
-      {contextHolder}
       <div className="bg-gray-100 flex flex-col font-poetsenone items-end justify-start mx-auto pb-[94px] md:pl-10 sm:pl-5 pl-[94px] w-full">
         <div className="flex flex-col items-start justify-start w-[98%] md:w-full">
           <div className="flex md:flex-col flex-row md:gap-10 items-end justify-between w-full">
@@ -137,7 +94,7 @@ const NFTLandingPagePage: React.FC = () => {
               <div className="flex flex-row gap-16 items-start justify-start w-auto">
                 <Link to="/">
                   <Text
-                    className="text-lg text-purple-A200 w-auto"
+                    className="text-lg text-gray-900 w-auto"
                     size="txtPoppinsMedium18"
                   >
                     Home
@@ -145,7 +102,7 @@ const NFTLandingPagePage: React.FC = () => {
                 </Link>
                 <Link to="/my-nft">
                   <Text
-                    className="text-gray-900 text-lg w-auto"
+                    className="text-purple-A200 text-lg w-auto"
                     size="txtPoppinsMedium18Gray900"
                   >
                     My NFT
@@ -286,22 +243,6 @@ const NFTLandingPagePage: React.FC = () => {
                     </Text>
                   </div>
                 </div>
-                <Button
-                  className="cursor-pointer flex items-center justify-center min-w-[304px] mt-[27px] rounded-[28px]"
-                  leftIcon={
-                    <Img
-                      className="h-6 mr-4"
-                      src="images/img_creditcard.svg"
-                      alt="credit-card"
-                    />
-                  }
-                  color="purple_A200_cyan_A100"
-                  onClick={() => buyNTF(e.tokenId, e.price)}
-                >
-                  <div className="font-medium leading-[normal] text-[15px] text-left">
-                    Place Bid
-                  </div>
-                </Button>
               </div>
             ))}
           </div>
@@ -311,4 +252,4 @@ const NFTLandingPagePage: React.FC = () => {
   );
 };
 
-export default NFTLandingPagePage;
+export default MyNFT;

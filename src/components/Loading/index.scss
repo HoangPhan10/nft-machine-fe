@@ -1,0 +1,14 @@
+.nft-loading {
+  background-color: rgba(156, 146, 146, 0.392);
+  position: fixed;
+  z-index: 999999;
+  top: 0;
+  left: 0;
+  user-select: none;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
